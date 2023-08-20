@@ -80,6 +80,51 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  void _removeItem(GroceryItem item) async {
+    // if (direction == DismissDirection.endToStart) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: const Text('Item deleted'),
+    //       duration: const Duration(seconds: 2),
+    //     ),
+    //   );
+    // }
+
+    setState(() {
+      _groceryItems.remove(item);
+    });
+
+    final url = Uri.https(
+      'flutter-prep-4722f-default-rtdb.asia-southeast1.firebasedatabase.app',
+      'shopping-list/${item.id}.json',
+    );
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Delete item failed',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.red),
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      setState(() {
+        _groceryItems.add(item);
+        // error = 'Failed to delete item. Please try again later.';
+      });
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(child: Text('No items added yet'));
@@ -94,11 +139,22 @@ class _GroceryListState extends State<GroceryList> {
         itemBuilder: (context, index) {
           return Dismissible(
             key: ValueKey(_groceryItems[index].id),
-            onDismissed: (direction) {
-              setState(() {
-                _groceryItems.removeAt(index);
-              });
-            },
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              margin: const EdgeInsets.symmetric(
+                horizontal: 15,
+                vertical: 4,
+              ),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            onDismissed: (direction) => _removeItem(_groceryItems[index]),
             child: ListTile(
               title: Text(_groceryItems[index].name),
               leading: Container(
