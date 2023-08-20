@@ -41,6 +41,13 @@ class _GroceryListState extends State<GroceryList> {
       return;
     }
 
+    if (response.body == 'null') {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     final loadedItems = <GroceryItem>[];
     json.decode(response.body).forEach((key, value) {
       final category = categories.entries
