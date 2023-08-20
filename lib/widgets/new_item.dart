@@ -21,6 +21,7 @@ class _NewItemState extends State<NewItem> {
   String _enteredName = '';
   int _enteredQuantity = 1;
   Category _selectedCategory = categories.values.first;
+  bool isSending = false;
 
   void _saveItem() async {
     final isValid = _formKey.currentState!.validate();
@@ -34,6 +35,9 @@ class _NewItemState extends State<NewItem> {
     );
 
     _formKey.currentState!.save();
+    setState(() {
+      isSending = true;
+    });
     final response = await http.post(
       url,
       headers: {
@@ -164,12 +168,18 @@ class _NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _resetForm,
+                    onPressed: isSending ? null : _resetForm,
                     child: const Text('Reset'),
                   ),
                   ElevatedButton(
-                    onPressed: _saveItem,
-                    child: const Text('Add item'),
+                    onPressed: isSending ? null : _saveItem,
+                    child: isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Add item'),
                   )
                 ],
               ),
